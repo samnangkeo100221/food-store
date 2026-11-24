@@ -4,7 +4,8 @@ import React, { useState, useMemo, useRef } from 'react';
 import { FoodItem, OrderItem, SaleReceipt } from '@/lib/types';
 import { formatKHR, formatUSD, DEFAULT_TABLES } from '@/lib/data';
 import {
-  Search,
+  ChevronDown,
+  ChevronUp,
   Plus,
   Minus,
   Trash2,
@@ -14,8 +15,6 @@ import {
   TrendingUp,
   Receipt,
   RotateCcw,
-  Eye,
-  EyeOff,
   Coins,
   QrCode,
   DollarSign,
@@ -56,7 +55,6 @@ export default function POSView({
   // Filters
   const [selectedCategory, setSelectedCategory] = useState<string>('ទាំងអស់');
   const [selectedInitialLetter, setSelectedInitialLetter] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Active Selected Food for the "កាតលក់"
   const [activeFood, setActiveFood] = useState<FoodItem | null>(null);
@@ -140,25 +138,8 @@ export default function POSView({
       result = [...matchStarts, ...matchContains];
     }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      const matchQueryStarts: FoodItem[] = [];
-      const matchQueryContains: FoodItem[] = [];
-
-      result.forEach((item) => {
-        const lowerName = item.name.toLowerCase();
-        if (lowerName.startsWith(query)) {
-          matchQueryStarts.push(item);
-        } else if (lowerName.includes(query)) {
-          matchQueryContains.push(item);
-        }
-      });
-
-      result = [...matchQueryStarts, ...matchQueryContains];
-    }
-
     return result;
-  }, [foodItems, selectedCategory, selectedInitialLetter, searchQuery]);
+  }, [foodItems, selectedCategory, selectedInitialLetter]);
 
   // Handle dish selection:
   // "ក្រោយចុចរើសម្ហូបរួចលាក់បញ្ជីម្ហូប" -> auto collapse catalog!
@@ -435,65 +416,22 @@ export default function POSView({
       </div>
 
       {/* ========================================================= */}
-      {/* 2. COMPACT HORIZONTAL TOOLBAR: SEARCH & FILTERS           */}
+      {/* 2. COMPACT HORIZONTAL TOOLBAR: CATEGORIES & FILTERS        */}
       {/* ========================================================= */}
-      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-3 shadow-sm space-y-2.5">
-        {/* Row 1: Active Table Pill + Search Input + Show/Hide Catalog Toggle */}
-        <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
-          {/* Active Table indicator */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-neutral-400 font-medium">តុ:</span>
-            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">
-              {currentTable} ({currentTableOrders.length} មុខ · {formatKHR(totalAmount)})
-            </span>
-          </div>
-
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ស្វែងរកមុខម្ហូប..."
-              className="w-full bg-neutral-900 border border-neutral-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400 hover:text-neutral-200"
-              >
-                លុប
-              </button>
-            )}
-          </div>
-
-          {/* Toggle Catalog Button */}
-          <button
-            onClick={() => setIsCatalogCollapsed(!isCatalogCollapsed)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-colors whitespace-nowrap self-end sm:self-auto ${
-              isCatalogCollapsed
-                ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
-                : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:bg-neutral-800'
-            }`}
-          >
-            {isCatalogCollapsed ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-            <span>{isCatalogCollapsed ? '+ បង្ហាញបញ្ជីម្ហូប (៣ជួរ)' : 'លាក់បញ្ជីម្ហូប'}</span>
-          </button>
-        </div>
-
-        {/* Row 2: Category Tabs + Initial Letter Filter */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1 border-t border-neutral-800/80">
+      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-2.5 sm:p-3 shadow-sm space-y-2">
+        {/* Categories + Downward Arrow Toggle */}
+        <div className="flex items-center justify-between gap-2">
           {/* Categories */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-thin">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-thin flex-1">
             {categories.map((cat) => (
               <button
                 key={cat}
+                type="button"
                 onClick={() => {
                   setSelectedCategory(cat);
                   setSelectedInitialLetter('');
                 }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === cat
                     ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                     : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
@@ -504,10 +442,30 @@ export default function POSView({
             ))}
           </div>
 
-          {/* Initial Letter quick filter */}
-          {availableInitialLetters.length > 0 && (
-            <div className="flex items-center gap-1 overflow-x-auto pb-0.5 shrink-0">
-              <span className="text-[10px] text-neutral-500 mr-1">អក្សរ:</span>
+          {/* Toggle Catalog Downward Arrow Button */}
+          <button
+            type="button"
+            onClick={() => setIsCatalogCollapsed(!isCatalogCollapsed)}
+            title={isCatalogCollapsed ? 'បង្ហាញបញ្ជីម្ហូប' : 'លាក់បញ្ជីម្ហូប'}
+            aria-label={isCatalogCollapsed ? 'បង្ហាញបញ្ជីម្ហូប' : 'លាក់បញ្ជីម្ហូប'}
+            className={`p-2 rounded-xl text-xs font-semibold border transition-all shrink-0 flex items-center justify-center ${
+              isCatalogCollapsed
+                ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
+                : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:bg-neutral-800 hover:text-neutral-100'
+            }`}
+          >
+            {isCatalogCollapsed ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        {/* Initial Letter quick filter */}
+        {availableInitialLetters.length > 0 && (
+          <div className="flex items-center gap-1 overflow-x-auto pt-1.5 border-t border-neutral-800/80 pb-0.5 shrink-0">
+            <span className="text-[10px] text-neutral-500 mr-1">អក្សរ:</span>
               <button
                 onClick={() => setSelectedInitialLetter('')}
                 className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
@@ -535,7 +493,6 @@ export default function POSView({
               ))}
             </div>
           )}
-        </div>
       </div>
 
       {/* ========================================================= */}
@@ -559,12 +516,12 @@ export default function POSView({
 
             {filteredDishes.length === 0 ? (
               <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-8 text-center text-xs text-neutral-400 space-y-2">
-                <p>មិនមានមុខម្ហូបត្រូវនឹងការស្វែងរកនេះទេ។</p>
+                <p>មិនមានមុខម្ហូបក្នុងក្រុមនេះទេ។</p>
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedCategory('ទាំងអស់');
                     setSelectedInitialLetter('');
-                    setSearchQuery('');
                   }}
                   className="px-3 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs rounded-lg transition-colors"
                 >
