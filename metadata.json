@@ -1,0 +1,6 @@
+{
+  "name": "ប្រព័ន្ធលក់ និងគ្រប់គ្រងអាហារ - Food POS",
+  "description": "កម្មវិធីគ្រប់គ្រងមុខម្ហូប ការលក់បុងអាហារ និងរបាយការណ៍ចំណេញ-ខាត",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
