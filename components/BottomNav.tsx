@@ -16,13 +16,13 @@ export default function BottomNav({
   occupiedTableCount,
 }: BottomNavProps) {
   return (
-    <nav className="no-print fixed bottom-0 left-0 right-0 z-40 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 shadow-2xl">
-      <div className="max-w-lg mx-auto flex items-center justify-around px-4 py-2">
+    <nav className="no-print fixed bottom-0 left-0 right-0 z-40 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 shadow-2xl pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+      <div className="max-w-md mx-auto flex items-center justify-around px-2 sm:px-4 py-1.5">
         {/* Tab 1: ទំព័រលក់ (POS) */}
         <button
           type="button"
           onClick={() => onViewChange('pos')}
-          className={`relative flex flex-col items-center justify-center py-1.5 px-4 rounded-2xl transition-all duration-200 group min-w-[90px] ${
+          className={`relative flex flex-col items-center justify-center py-1 sm:py-1.5 px-2 sm:px-4 rounded-2xl transition-all duration-200 group min-w-[75px] sm:min-w-[90px] ${
             currentView === 'pos'
               ? 'text-amber-400 font-bold'
               : 'text-neutral-400 hover:text-neutral-200'

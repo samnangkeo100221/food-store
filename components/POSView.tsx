@@ -21,7 +21,7 @@ import {
   PlusCircle,
   X,
   CreditCard,
-  Utensils,
+  Delete,
 } from 'lucide-react';
 
 interface POSViewProps {
@@ -60,6 +60,7 @@ export default function POSView({
   const [activeFood, setActiveFood] = useState<FoodItem | null>(null);
   const [activeQuantity, setActiveQuantity] = useState<number>(1);
   const [activeNote, setActiveNote] = useState<string>('');
+  const [isNewQuantityInput, setIsNewQuantityInput] = useState<boolean>(true);
 
   // Checkout modal
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -73,6 +74,9 @@ export default function POSView({
     return ordersByTable[currentTable] || [];
   }, [ordersByTable, currentTable]);
 
+  // Table status filter: 'all' | 'occupied' | 'vacant'
+  const [tableStatusFilter, setTableStatusFilter] = useState<'all' | 'occupied' | 'vacant'>('all');
+
   // Overall table statistics
   const overallStats = useMemo(() => {
     let occupied = 0;
@@ -84,8 +88,23 @@ export default function POSView({
         totalUnpaid += items.reduce((acc, it) => acc + it.sellingPrice * it.quantity, 0);
       }
     });
-    return { occupied, totalUnpaid };
+    return {
+      occupied,
+      totalUnpaid,
+      vacant: Math.max(0, tablesList.length - occupied),
+    };
   }, [tablesList, ordersByTable]);
+
+  // Filtered tables based on occupied / vacant status
+  const filteredTablesList = useMemo(() => {
+    if (tableStatusFilter === 'occupied') {
+      return tablesList.filter((tbl) => (ordersByTable[tbl]?.length || 0) > 0);
+    }
+    if (tableStatusFilter === 'vacant') {
+      return tablesList.filter((tbl) => (ordersByTable[tbl]?.length || 0) === 0);
+    }
+    return tablesList;
+  }, [tablesList, tableStatusFilter, ordersByTable]);
 
   // Available Categories
   const categories = useMemo(() => {
@@ -141,6 +160,57 @@ export default function POSView({
     return result;
   }, [foodItems, selectedCategory, selectedInitialLetter]);
 
+  // Quantity input & Keypad handlers
+  const handleKeypadPress = (digit: string) => {
+    if (isNewQuantityInput) {
+      if (digit === '0' || digit === '00') {
+        setActiveQuantity(1);
+      } else {
+        const val = parseInt(digit, 10);
+        if (!isNaN(val) && val > 0) {
+          setActiveQuantity(val);
+          setIsNewQuantityInput(false);
+        }
+      }
+    } else {
+      const currentStr = activeQuantity.toString();
+      if (currentStr.length < 4) {
+        const newStr = currentStr + digit;
+        const val = parseInt(newStr, 10);
+        if (!isNaN(val) && val > 0) {
+          setActiveQuantity(val);
+        }
+      }
+    }
+  };
+
+  const handleKeypadBackspace = () => {
+    const currentStr = activeQuantity.toString();
+    if (currentStr.length > 1) {
+      const newStr = currentStr.slice(0, -1);
+      const val = parseInt(newStr, 10);
+      setActiveQuantity(isNaN(val) || val < 1 ? 1 : val);
+    } else {
+      setActiveQuantity(1);
+      setIsNewQuantityInput(true);
+    }
+  };
+
+  const handleKeypadClear = () => {
+    setActiveQuantity(1);
+    setIsNewQuantityInput(true);
+  };
+
+  const handleDecreaseQuantity = () => {
+    setActiveQuantity((q) => Math.max(1, q - 1));
+    setIsNewQuantityInput(false);
+  };
+
+  const handleIncreaseQuantity = () => {
+    setActiveQuantity((q) => q + 1);
+    setIsNewQuantityInput(false);
+  };
+
   // Handle dish selection:
   // "ក្រោយចុចរើសម្ហូបរួចលាក់បញ្ជីម្ហូប" -> auto collapse catalog!
   const handleSelectDish = (food: FoodItem) => {
@@ -153,6 +223,7 @@ export default function POSView({
       setActiveQuantity(1);
       setActiveNote('');
     }
+    setIsNewQuantityInput(true);
 
     // ក្រោយចុចរើសម្ហូបរួចលាក់បញ្ជីម្ហូប
     setIsCatalogCollapsed(true);
@@ -202,6 +273,7 @@ export default function POSView({
     setActiveFood(null);
     setActiveQuantity(1);
     setActiveNote('');
+    setIsNewQuantityInput(true);
   };
 
   // Delete item directly from the Sales Bill table
@@ -210,6 +282,7 @@ export default function POSView({
     onUpdateTableOrder(currentTable, updated);
     if (activeFood?.id === itemId) {
       setActiveFood(null);
+      setIsNewQuantityInput(true);
     }
   };
 
@@ -228,6 +301,7 @@ export default function POSView({
     setActiveFood(foundFood);
     setActiveQuantity(item.quantity);
     setActiveNote(item.note || '');
+    setIsNewQuantityInput(true);
 
     // Make sure sales card is in view
     salesCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -312,75 +386,149 @@ export default function POSView({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-5 py-4 space-y-4">
+    <div className="max-w-7xl mx-auto px-2 sm:px-5 py-2.5 sm:py-4 space-y-3 sm:space-y-4">
       {/* ========================================================= */}
       {/* 1. HORIZONTAL TABLE TABS BAR (តុ១, តុ២, តុ៣,...)           */}
       {/* ========================================================= */}
-      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-2.5 shadow-sm space-y-2">
-        <div className="flex items-center justify-between text-xs px-1">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-neutral-200">Tab តុ:</span>
-            <span className="text-[11px] text-amber-400 font-medium">
-              កំពុងលក់ {overallStats.occupied} តុ · សរុប {formatKHR(overallStats.totalUnpaid)}
-            </span>
+      <div className="bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl p-2 sm:p-2.5 shadow-sm space-y-1.5 sm:space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs px-1">
+          {/* Status filters and legend */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span className="font-bold text-neutral-200 mr-0.5">តុ:</span>
+
+            {/* All tables filter */}
+            <button
+              type="button"
+              onClick={() => setTableStatusFilter('all')}
+              className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all border ${
+                tableStatusFilter === 'all'
+                  ? 'bg-neutral-200 text-neutral-950 border-neutral-300 shadow-sm'
+                  : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200 border-neutral-800'
+              }`}
+            >
+              ទាំងអស់ ({tablesList.length})
+            </button>
+
+            {/* Occupied tables filter (Amber) */}
+            <button
+              type="button"
+              onClick={() => setTableStatusFilter('occupied')}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all border ${
+                tableStatusFilter === 'occupied'
+                  ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
+                  : 'bg-amber-950/30 text-amber-300 hover:bg-amber-900/40 border-amber-500/40'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>មានភ្ញៀវ ({overallStats.occupied})</span>
+              {overallStats.totalUnpaid > 0 && (
+                <span className="text-[10px] opacity-90 hidden sm:inline">
+                  · {formatKHR(overallStats.totalUnpaid)}
+                </span>
+              )}
+            </button>
+
+            {/* Vacant tables filter (Emerald) */}
+            <button
+              type="button"
+              onClick={() => setTableStatusFilter('vacant')}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold transition-all border ${
+                tableStatusFilter === 'vacant'
+                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-sm'
+                  : 'bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40 border-emerald-500/40'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400" />
+              <span>ទំនេរ ({overallStats.vacant})</span>
+            </button>
           </div>
 
+          {/* Add table button */}
           <button
             onClick={() => setIsAddingTable(!isAddingTable)}
-            className="text-amber-400 hover:text-amber-300 font-bold text-xs flex items-center gap-1 transition-colors"
+            className="text-amber-400 hover:text-amber-300 font-bold text-[11px] sm:text-xs flex items-center gap-1 transition-colors px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg hover:bg-neutral-800"
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>+ បន្ថែមតុ</span>
           </button>
         </div>
 
-        {/* Tab Strip with smooth horizontal scroll */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-          {tablesList.map((tbl) => {
-            const items = ordersByTable[tbl] || [];
-            const isOccupied = items.length > 0;
-            const isSelected = tbl === currentTable;
-            const tableTotal = items.reduce((acc, it) => acc + it.sellingPrice * it.quantity, 0);
+        {/* Tab Strip with color-coded buttons */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-thin">
+          {filteredTablesList.length === 0 ? (
+            <div className="text-xs text-neutral-400 py-1.5 px-3 italic">
+              មិនមានតុស្ថិតក្នុងស្ថានភាពនេះទេ (ចុច &quot;ទាំងអស់&quot; ដើម្បីមើលតុទាំងអស់)
+            </div>
+          ) : (
+            filteredTablesList.map((tbl) => {
+              const items = ordersByTable[tbl] || [];
+              const isOccupied = items.length > 0;
+              const isSelected = tbl === currentTable;
+              const tableTotal = items.reduce(
+                (acc, it) => acc + it.sellingPrice * it.quantity,
+                0
+              );
 
-            return (
-              <button
-                key={tbl}
-                type="button"
-                onClick={() => {
-                  onSelectTable(tbl);
-                  setActiveFood(null);
-                }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 border ${
-                  isSelected
-                    ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-md shadow-amber-500/25 ring-2 ring-amber-400/40'
-                    : isOccupied
-                    ? 'bg-amber-950/40 text-amber-300 border-amber-500/50 hover:bg-amber-900/40'
-                    : 'bg-neutral-900 text-neutral-300 border-neutral-700/80 hover:bg-neutral-800 hover:text-neutral-100'
-                }`}
-              >
-                <span>{tbl}</span>
-                {isOccupied ? (
+              return (
+                <button
+                  key={tbl}
+                  type="button"
+                  onClick={() => {
+                    onSelectTable(tbl);
+                    setActiveFood(null);
+                  }}
+                  className={`group flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 border ${
+                    isSelected
+                      ? isOccupied
+                        ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-md shadow-amber-500/25 ring-2 ring-amber-300'
+                        : 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-600/25 ring-2 ring-emerald-300'
+                      : isOccupied
+                      ? 'bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border-amber-500/60 shadow-sm'
+                      : 'bg-emerald-950/30 hover:bg-emerald-900/40 text-emerald-300 border-emerald-500/40 shadow-sm'
+                  }`}
+                >
+                  {/* Status dot */}
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                    className={`w-2 h-2 rounded-full shrink-0 ${
                       isSelected
-                        ? 'bg-neutral-950 text-amber-400'
-                        : 'bg-amber-500 text-neutral-950'
+                        ? isOccupied
+                          ? 'bg-neutral-950'
+                          : 'bg-white'
+                        : isOccupied
+                        ? 'bg-amber-400 ring-2 ring-amber-400/40 animate-pulse'
+                        : 'bg-emerald-400 ring-2 ring-emerald-400/40'
                     }`}
-                  >
-                    {items.length} មុខ · {formatKHR(tableTotal)}
-                  </span>
-                ) : (
-                  <span
-                    className={`text-[10px] font-normal ${
-                      isSelected ? 'text-neutral-900/80' : 'text-emerald-500'
-                    }`}
-                  >
-                    (ទំនេរ)
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                  />
+
+                  <span>{tbl}</span>
+
+                  {isOccupied ? (
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold tabular-nums flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-neutral-950 text-amber-300'
+                          : 'bg-amber-500 text-neutral-950'
+                      }`}
+                    >
+                      <span>{items.length} មុខ</span>
+                      <span>·</span>
+                      <span>{formatKHR(tableTotal)}</span>
+                    </span>
+                  ) : (
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${
+                        isSelected
+                          ? 'bg-emerald-700 text-emerald-100'
+                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      }`}
+                    >
+                      ទំនេរ
+                    </span>
+                  )}
+                </button>
+              );
+            })
+          )}
         </div>
 
         {/* Add Table inline form */}
@@ -418,11 +566,11 @@ export default function POSView({
       {/* ========================================================= */}
       {/* 2. COMPACT HORIZONTAL TOOLBAR: CATEGORIES & FILTERS        */}
       {/* ========================================================= */}
-      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-2.5 sm:p-3 shadow-sm space-y-2">
+      <div className="bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl p-2 sm:p-2.5 shadow-sm space-y-1.5 sm:space-y-2">
         {/* Categories + Downward Arrow Toggle */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2">
           {/* Categories */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-thin flex-1">
+          <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-0.5 scrollbar-thin flex-1">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -431,7 +579,7 @@ export default function POSView({
                   setSelectedCategory(cat);
                   setSelectedInitialLetter('');
                 }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === cat
                     ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                     : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
@@ -448,51 +596,51 @@ export default function POSView({
             onClick={() => setIsCatalogCollapsed(!isCatalogCollapsed)}
             title={isCatalogCollapsed ? 'បង្ហាញបញ្ជីម្ហូប' : 'លាក់បញ្ជីម្ហូប'}
             aria-label={isCatalogCollapsed ? 'បង្ហាញបញ្ជីម្ហូប' : 'លាក់បញ្ជីម្ហូប'}
-            className={`p-2 rounded-xl text-xs font-semibold border transition-all shrink-0 flex items-center justify-center ${
+            className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-xs font-semibold border transition-all shrink-0 flex items-center justify-center ${
               isCatalogCollapsed
                 ? 'bg-amber-500 text-neutral-950 border-amber-400 shadow-sm'
                 : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:bg-neutral-800 hover:text-neutral-100'
             }`}
           >
             {isCatalogCollapsed ? (
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
         </div>
 
         {/* Initial Letter quick filter */}
         {availableInitialLetters.length > 0 && (
-          <div className="flex items-center gap-1 overflow-x-auto pt-1.5 border-t border-neutral-800/80 pb-0.5 shrink-0">
+          <div className="flex items-center gap-1 overflow-x-auto pt-1 border-t border-neutral-800/80 pb-0.5 shrink-0">
             <span className="text-[10px] text-neutral-500 mr-1">អក្សរ:</span>
+            <button
+              onClick={() => setSelectedInitialLetter('')}
+              className={`px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium transition-colors ${
+                selectedInitialLetter === ''
+                  ? 'bg-neutral-200 text-neutral-900 font-bold'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              ទាំងអស់
+            </button>
+            {availableInitialLetters.map((letter) => (
               <button
-                onClick={() => setSelectedInitialLetter('')}
-                className={`px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                  selectedInitialLetter === ''
-                    ? 'bg-neutral-200 text-neutral-900 font-bold'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                key={letter}
+                onClick={() =>
+                  setSelectedInitialLetter(selectedInitialLetter === letter ? '' : letter)
+                }
+                className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-[11px] sm:text-xs font-bold transition-all ${
+                  selectedInitialLetter === letter
+                    ? 'bg-amber-500 text-neutral-950 shadow-sm'
+                    : 'bg-neutral-900 text-neutral-300 hover:bg-neutral-800 border border-neutral-800'
                 }`}
               >
-                ទាំងអស់
+                {letter}
               </button>
-              {availableInitialLetters.map((letter) => (
-                <button
-                  key={letter}
-                  onClick={() =>
-                    setSelectedInitialLetter(selectedInitialLetter === letter ? '' : letter)
-                  }
-                  className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold transition-all ${
-                    selectedInitialLetter === letter
-                      ? 'bg-amber-500 text-neutral-950 shadow-sm'
-                      : 'bg-neutral-900 text-neutral-300 hover:bg-neutral-800 border border-neutral-800'
-                  }`}
-                >
-                  {letter}
-                </button>
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -530,7 +678,7 @@ export default function POSView({
               </div>
             ) : (
               /* ៣ ជួរឈរ (3 VERTICAL COLUMNS GRID) */
-              <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
                 {filteredDishes.map((food) => {
                   const isSelected = activeFood?.id === food.id;
                   const inBill = currentTableOrders.find((it) => it.itemId === food.id);
@@ -546,7 +694,7 @@ export default function POSView({
                       }`}
                     >
                       {/* Image Box */}
-                      <div className="relative aspect-4/3 w-full bg-neutral-900 overflow-hidden">
+                      <div className="relative aspect-square sm:aspect-4/3 w-full bg-neutral-900 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={food.image}
@@ -555,28 +703,28 @@ export default function POSView({
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         {/* Initial Letter Badge */}
-                        <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded bg-neutral-950/85 text-amber-400 text-[10px] font-bold flex items-center justify-center border border-neutral-700">
+                        <div className="absolute top-1 left-1 w-4 h-4 sm:w-5 sm:h-5 rounded bg-neutral-950/85 text-amber-400 text-[9px] sm:text-[10px] font-bold flex items-center justify-center border border-neutral-700">
                           {food.initialLetter || food.name.charAt(0)}
                         </div>
 
                         {/* In-Bill count badge */}
                         {inBill && (
-                          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.2 rounded-full bg-amber-500 text-neutral-950 text-[10px] font-bold shadow-md">
+                          <div className="absolute top-1 right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-neutral-950 text-[9px] sm:text-[10px] font-bold shadow-md">
                             x{inBill.quantity}
                           </div>
                         )}
                       </div>
 
                       {/* Content */}
-                      <div className="p-2 space-y-0.5">
-                        <h4 className="text-xs font-semibold text-neutral-100 line-clamp-1 group-hover:text-amber-400 transition-colors">
+                      <div className="p-1.5 sm:p-2 space-y-0.5">
+                        <h4 className="text-[11px] sm:text-xs font-semibold text-neutral-100 line-clamp-1 group-hover:text-amber-400 transition-colors">
                           {food.name}
                         </h4>
-                        <div className="flex items-baseline justify-between pt-0.5">
-                          <span className="text-xs font-bold text-amber-400 tabular-nums">
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pt-0.5">
+                          <span className="text-[11px] sm:text-xs font-bold text-amber-400 tabular-nums">
                             {formatKHR(food.sellingPrice)}
                           </span>
-                          <span className="text-[10px] text-neutral-500 tabular-nums">
+                          <span className="text-[9px] sm:text-[10px] text-neutral-500 tabular-nums hidden sm:inline">
                             {formatUSD(food.sellingPrice)}
                           </span>
                         </div>
@@ -597,22 +745,7 @@ export default function POSView({
             isCatalogCollapsed ? 'lg:col-span-12' : 'lg:col-span-5 xl:col-span-5'
           } space-y-4`}
         >
-          {/* If catalog is collapsed, provide clean prompt to re-open */}
-          {isCatalogCollapsed && (
-            <div className="bg-neutral-850/80 border border-neutral-800 rounded-2xl p-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-neutral-300">
-                <Utensils className="w-4 h-4 text-amber-500" />
-                <span>បញ្ជីម្ហូបត្រូវបានលាក់ដើម្បីផ្ដោតលើការកុម្ម៉ង់ {currentTable}</span>
-              </div>
-              <button
-                onClick={() => setIsCatalogCollapsed(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs font-bold transition-colors shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ បង្ហាញបញ្ជីម្ហូប (៣ ជួរ)</span>
-              </button>
-            </div>
-          )}
+
 
           {/* 1. កាតលក់ (Active Sales Card / Item Action Box) */}
           <div
@@ -670,50 +803,88 @@ export default function POSView({
                   </div>
                 </div>
 
-                {/* Quantity Controls: Horizontal stepper & shortcuts */}
-                <div className="flex items-center justify-between gap-2 bg-neutral-900 p-2 rounded-xl border border-neutral-800">
-                  <span className="text-xs text-neutral-300 font-medium">ចំនួន:</span>
-                  <div className="flex items-center gap-2">
+                {/* Quantity Controls: Editable Box with -/+ Stepper & Numeric Keypad */}
+                <div className="bg-neutral-900/80 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 space-y-2 sm:space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] sm:text-xs text-neutral-300 font-semibold">ចំនួន:</span>
                     <button
                       type="button"
-                      onClick={() => setActiveQuantity((q) => Math.max(1, q - 1))}
-                      className="w-7 h-7 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-300 hover:bg-neutral-700 transition-colors"
+                      onClick={handleKeypadClear}
+                      className="text-[10px] sm:text-[11px] text-neutral-400 hover:text-amber-400 transition-colors"
+                      title="កំណត់ចំនួនទៅ 1 វិញ"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      កំណត់ឡើងវិញ (1)
                     </button>
+                  </div>
+
+                  {/* Editable input box with - (decrease) and + (increase) on each side */}
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDecreaseQuantity}
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 flex items-center justify-center font-bold text-base sm:text-lg border border-neutral-700 transition-all shrink-0 shadow-sm"
+                      title="បន្ថយចំនួន (-)"
+                    >
+                      <Minus className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+
                     <input
                       type="number"
                       min="1"
                       value={activeQuantity}
-                      onChange={(e) =>
-                        setActiveQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                      }
-                      className="w-10 text-center bg-transparent text-sm font-bold text-neutral-100 tabular-nums focus:outline-none"
+                      onFocus={() => setIsNewQuantityInput(false)}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        setActiveQuantity(isNaN(val) || val < 1 ? 1 : val);
+                        setIsNewQuantityInput(false);
+                      }}
+                      className="flex-1 h-10 sm:h-11 text-center bg-neutral-950 border border-neutral-700 focus:border-amber-500 rounded-lg sm:rounded-xl px-2 sm:px-3 text-lg sm:text-xl font-bold text-amber-400 tabular-nums focus:outline-none transition-colors shadow-inner"
                     />
+
                     <button
                       type="button"
-                      onClick={() => setActiveQuantity((q) => q + 1)}
-                      className="w-7 h-7 rounded-lg bg-neutral-800 flex items-center justify-center text-neutral-300 hover:bg-neutral-700 transition-colors"
+                      onClick={handleIncreaseQuantity}
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 flex items-center justify-center font-bold text-base sm:text-lg border border-neutral-700 transition-all shrink-0 shadow-sm"
+                      title="បង្កើនចំនួន (+)"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 5].map((num) => (
+                  {/* Numeric Keypad (1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 00, Delete) */}
+                  <div className="grid grid-cols-3 gap-1 sm:gap-1.5 pt-0.5 sm:pt-1">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
                       <button
-                        key={num}
+                        key={digit}
                         type="button"
-                        onClick={() => setActiveQuantity(num)}
-                        className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors ${
-                          activeQuantity === num
-                            ? 'bg-amber-500 text-neutral-950 border-amber-500'
-                            : 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:text-neutral-200'
-                        }`}
+                        onClick={() => handleKeypadPress(digit)}
+                        className="py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-neutral-900 hover:bg-neutral-800 active:bg-amber-500 active:text-neutral-950 text-neutral-100 font-bold text-sm sm:text-base border border-neutral-800 hover:border-neutral-700 transition-colors shadow-sm"
                       >
-                        {num}
+                        {digit}
                       </button>
                     ))}
+                    <button
+                      type="button"
+                      onClick={() => handleKeypadPress('0')}
+                      className="py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-neutral-900 hover:bg-neutral-800 active:bg-amber-500 active:text-neutral-950 text-neutral-100 font-bold text-sm sm:text-base border border-neutral-800 hover:border-neutral-700 transition-colors shadow-sm"
+                    >
+                      0
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleKeypadPress('00')}
+                      className="py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-neutral-900 hover:bg-neutral-800 active:bg-amber-500 active:text-neutral-950 text-neutral-100 font-bold text-sm sm:text-base border border-neutral-800 hover:border-neutral-700 transition-colors shadow-sm"
+                    >
+                      00
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleKeypadBackspace}
+                      title="លុបថយក្រោយ"
+                      className="py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-neutral-900 hover:bg-neutral-800 active:bg-red-500/20 active:text-red-400 text-neutral-400 hover:text-neutral-200 border border-neutral-800 hover:border-neutral-700 flex items-center justify-center transition-colors shadow-sm"
+                    >
+                      <Delete className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
                   </div>
                 </div>
 
@@ -923,8 +1094,8 @@ export default function POSView({
 
       {/* Checkout Modal */}
       {isCheckoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3 sm:space-y-4 max-h-[92vh] overflow-y-auto my-auto">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
               <div className="flex items-center gap-2">
                 <Coins className="w-4 h-4 text-amber-500" />

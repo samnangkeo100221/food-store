@@ -123,13 +123,13 @@ export default function CameraModal({ isOpen, onClose, onCapture }: CameraModalP
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4">
+      <div className="relative w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh] my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-neutral-900/90">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-neutral-800 bg-neutral-900/90 shrink-0">
           <div className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-amber-500" />
-            <h3 className="text-base font-semibold text-neutral-100">ថតរូបមុខម្ហូប (Camera)</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-neutral-100">ថតរូបមុខម្ហូប (Camera)</h3>
           </div>
           <button
             onClick={handleClose}

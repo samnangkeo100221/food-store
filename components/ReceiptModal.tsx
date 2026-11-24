@@ -28,13 +28,13 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl flex flex-col my-8 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+      <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl flex flex-col my-auto max-h-[95vh] overflow-hidden">
         {/* Header - No print */}
-        <div className="no-print flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-neutral-900/90">
+        <div className="no-print flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-neutral-800 bg-neutral-900/90 shrink-0">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            <h3 className="text-base font-semibold text-neutral-100">វិក្កយបត្រលក់ (Receipt)</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-neutral-100">វិក្កយបត្រលក់ (Receipt)</h3>
           </div>
           <button
             onClick={onClose}
@@ -45,7 +45,7 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
         </div>
 
         {/* Thermal Receipt Paper Layout */}
-        <div className="p-6 bg-white text-neutral-900 font-mono text-xs select-text">
+        <div className="p-4 sm:p-6 bg-white text-neutral-900 font-mono text-xs select-text overflow-y-auto flex-1">
           {/* Store Logo/Header */}
           <div className="text-center space-y-1 pb-4 border-b border-dashed border-neutral-400">
             <h2 className="text-base font-bold font-sans tracking-wide text-neutral-950">
@@ -161,16 +161,16 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
         </div>
 
         {/* Footer Actions - No print */}
-        <div className="no-print p-4 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between gap-3">
+        <div className="no-print p-3 sm:p-4 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-sm font-medium transition-colors"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs sm:text-sm font-medium transition-colors"
           >
             បិទផ្ទាំង
           </button>
           <button
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-sm font-semibold transition-colors shadow-lg shadow-amber-500/20"
+            className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs sm:text-sm font-semibold transition-colors shadow-lg shadow-amber-500/20"
           >
             <Printer className="w-4 h-4" />
             បោះពុម្ពបុង (Print)

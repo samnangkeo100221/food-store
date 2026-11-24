@@ -176,9 +176,9 @@ export default function FoodManagementView({
   const marginPercent = sellingPrice > 0 ? ((unitProfit / sellingPrice) * 100).toFixed(0) : '0';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6">
       {/* Top Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-neutral-850 border border-neutral-800 rounded-2xl p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm">
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-neutral-100 flex items-center gap-2">
             <span>ទំព័រគ្រប់គ្រងមុខម្ហូប (Food Items & Menu)</span>
@@ -212,7 +212,7 @@ export default function FoodManagementView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+      <div className="bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
           <input
@@ -255,8 +255,8 @@ export default function FoodManagementView({
       </div>
 
       {/* Foods Table / Grid */}
-      <div className="bg-neutral-850 border border-neutral-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-neutral-800 text-neutral-400 bg-neutral-900/60 text-[11px] uppercase tracking-wider">
@@ -373,8 +373,8 @@ export default function FoodManagementView({
 
       {/* Add / Edit Food Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-6 my-8 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl p-4 sm:p-6 my-auto max-h-[92vh] overflow-y-auto space-y-4 sm:space-y-5">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <h3 className="text-base font-bold text-neutral-100">

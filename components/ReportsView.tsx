@@ -163,21 +163,21 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6">
       {/* Header & Date Range Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-neutral-850 border border-neutral-800 rounded-2xl p-5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-neutral-850 border border-neutral-800 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-neutral-100 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-amber-500" />
-            <span>ទំព័ររបាយការណ៍លក់ & ចំណេញ (Sales & Profit Analytics)</span>
+          <h1 className="text-base sm:text-xl font-bold text-neutral-100 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-amber-500 shrink-0" />
+            <span>ទំព័ររបាយការណ៍លក់ & ចំណេញ (Sales & Profit)</span>
           </h1>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-[11px] sm:text-xs text-neutral-400 mt-0.5">
             ទិន្នន័យស្ថិតិលក់ ចំណេញសុទ្ធ ក្រាហ្វប្រៀបធៀប និងប្រវត្តិវិក្កយបត្រ
           </p>
         </div>
 
         {/* Date Filter Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-700 rounded-xl overflow-x-auto">
+        <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-700 rounded-xl overflow-x-auto scrollbar-thin">
           {[
             { id: 'today', label: 'ថ្ងៃនេះ' },
             { id: 'yesterday', label: 'ម្សិលមិញ' },
@@ -188,7 +188,7 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
             <button
               key={tab.id}
               onClick={() => setSelectedRange(tab.id as DateRange)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors ${
                 selectedRange === tab.id
                   ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -201,7 +201,7 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
       </div>
 
       {/* KPI Stat Cards (60-30-10 discipline) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Total Revenue */}
         <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-4 space-y-2">
           <div className="flex items-center justify-between text-neutral-400 text-xs">

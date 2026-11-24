@@ -203,8 +203,8 @@ export default function HomePage() {
         activeTable={activeTable}
       />
 
-      {/* Main View Area (with padding-bottom for BottomNav) */}
-      <main className="flex-1 pb-24">
+      {/* Main View Area (with padding-bottom for BottomNav + safe area) */}
+      <main className="flex-1 pb-28 sm:pb-24">
         {currentView === 'pos' && (
           <POSView
             foodItems={foodItems}
