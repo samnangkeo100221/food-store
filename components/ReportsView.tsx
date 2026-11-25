@@ -177,7 +177,7 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
         </div>
 
         {/* Date Filter Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-neutral-900 border border-neutral-700 rounded-xl overflow-x-auto scrollbar-thin">
+        <div className="flex items-center gap-1.5 p-1.5 bg-neutral-900 border border-neutral-700 rounded-xl sm:rounded-2xl overflow-x-auto scrollbar-thin">
           {[
             { id: 'today', label: 'ថ្ងៃនេះ' },
             { id: 'yesterday', label: 'ម្សិលមិញ' },
@@ -188,7 +188,7 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
             <button
               key={tab.id}
               onClick={() => setSelectedRange(tab.id as DateRange)}
-              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors min-h-[38px] sm:min-h-[42px] flex items-center justify-center ${
                 selectedRange === tab.id
                   ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                   : 'text-neutral-400 hover:text-neutral-200'
@@ -512,9 +512,9 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
                     <td className="py-3 px-3 text-center">
                       <button
                         onClick={() => handleViewReceipt(rec)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-neutral-700 hover:border-amber-500/50 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 text-xs transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-neutral-700 hover:border-amber-500/50 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 text-xs sm:text-sm font-bold transition-colors shadow-sm min-h-[36px]"
                       >
-                        <Eye className="w-3.5 h-3.5" />
+                        <Eye className="w-4 h-4" />
                         <span>មើលបុង</span>
                       </button>
                     </td>

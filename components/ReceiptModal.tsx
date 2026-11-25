@@ -3,7 +3,7 @@
 import React from 'react';
 import { SaleReceipt } from '@/lib/types';
 import { formatKHR, formatUSD } from '@/lib/data';
-import { Printer, X, CheckCircle2, QrCode } from 'lucide-react';
+import { Printer, X, CheckCircle2, QrCode, UserPlus } from 'lucide-react';
 
 interface ReceiptModalProps {
   receipt: SaleReceipt | null;
@@ -32,9 +32,16 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
       <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl shadow-2xl flex flex-col my-auto max-h-[95vh] overflow-hidden">
         {/* Header - No print */}
         <div className="no-print flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-neutral-800 bg-neutral-900/90 shrink-0">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            <h3 className="text-sm sm:text-base font-semibold text-neutral-100">វិក្កយបត្រលក់ (Receipt)</h3>
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-neutral-100">
+                វិក្កយបត្រលក់: <span className="text-amber-400">{receipt.tableNo}</span>
+              </h3>
+              <p className="text-[10px] text-emerald-400 font-medium">
+                គិតលុយរួចរាល់ • រៀបចំរួចរាល់សម្រាប់ភ្ញៀវថ្មីនៅតុនេះដដែល
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -161,19 +168,20 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
         </div>
 
         {/* Footer Actions - No print */}
-        <div className="no-print p-3 sm:p-4 bg-neutral-900 border-t border-neutral-800 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={onClose}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs sm:text-sm font-medium transition-colors"
-          >
-            បិទផ្ទាំង
-          </button>
+        <div className="no-print p-3 sm:p-4 bg-neutral-900 border-t border-neutral-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
           <button
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs sm:text-sm font-semibold transition-colors shadow-lg shadow-amber-500/20"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl border border-neutral-700 hover:border-neutral-600 bg-neutral-850 hover:bg-neutral-800 text-neutral-200 text-sm sm:text-base font-bold transition-colors min-h-[48px] sm:min-h-[52px]"
           >
-            <Printer className="w-4 h-4" />
-            បោះពុម្ពបុង (Print)
+            <Printer className="w-5 h-5 text-amber-400" />
+            <span>បោះពុម្ពបុង (Print)</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 sm:py-3.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm sm:text-base font-bold transition-colors shadow-lg shadow-emerald-600/25 min-h-[48px] sm:min-h-[52px]"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>រៀបតុថ្មី ({receipt.tableNo})</span>
           </button>
         </div>
       </div>

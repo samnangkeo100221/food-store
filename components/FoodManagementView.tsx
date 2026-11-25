@@ -224,12 +224,12 @@ export default function FoodManagementView({
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setSelectedCategory('ទាំងអស់')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors min-h-[40px] flex items-center justify-center ${
               selectedCategory === 'ទាំងអស់'
-                ? 'bg-amber-500 text-neutral-950 font-semibold shadow-sm'
+                ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                 : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
             }`}
           >
@@ -241,9 +241,9 @@ export default function FoodManagementView({
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors min-h-[40px] flex items-center justify-center ${
                   selectedCategory === cat
-                    ? 'bg-amber-500 text-neutral-950 font-semibold shadow-sm'
+                    ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
                     : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200 border border-neutral-800'
                 }`}
               >
@@ -344,10 +344,10 @@ export default function FoodManagementView({
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => handleOpenEdit(food)}
-                            className="p-1.5 rounded-lg border border-neutral-700 text-neutral-300 hover:text-amber-400 hover:border-amber-500/50 hover:bg-neutral-800 transition-colors"
+                            className="p-2 rounded-xl border border-neutral-700 text-neutral-300 hover:text-amber-400 hover:border-amber-500/50 hover:bg-neutral-800 transition-colors shadow-sm"
                             title="កែប្រែមុខម្ហូប (Edit)"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => {
@@ -355,10 +355,10 @@ export default function FoodManagementView({
                                 onDeleteFood(food.id);
                               }
                             }}
-                            className="p-1.5 rounded-lg border border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-500/50 hover:bg-neutral-800 transition-colors"
+                            className="p-2 rounded-xl border border-neutral-700 text-neutral-400 hover:text-red-400 hover:border-red-500/50 hover:bg-neutral-800 transition-colors shadow-sm"
                             title="លុបមុខម្ហូប (Delete)"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

@@ -173,8 +173,8 @@ export default function HomePage() {
     });
   };
 
-  // Complete Sale for a table
-  const handleCompleteSale = (receipt: SaleReceipt) => {
+  // Complete Sale for a table (ចម្លងទៅបញ្ជីលក់សរុប)
+  const handleCompleteSale = (receipt: SaleReceipt, showModal: boolean = true) => {
     const updatedReceipts = [receipt, ...salesReceipts];
     setSalesReceipts(updatedReceipts);
     try {
@@ -182,9 +182,11 @@ export default function HomePage() {
     } catch (e) {
       console.warn('Failed to save sale receipt to localStorage:', e);
     }
-    // Show thermal receipt modal immediately
+    // Set completed receipt
     setCompletedReceipt(receipt);
-    setIsReceiptModalOpen(true);
+    if (showModal) {
+      setIsReceiptModalOpen(true);
+    }
   };
 
   if (!isClient) {
