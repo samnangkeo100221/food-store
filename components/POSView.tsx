@@ -934,8 +934,8 @@ export default function POSView({
                           : 'border-neutral-800 hover:border-neutral-700'
                       }`}
                     >
-                      {/* Image Box */}
-                      <div className="relative aspect-square sm:aspect-4/3 w-full bg-neutral-900 overflow-hidden">
+                      {/* Image Box - Square (height = width) */}
+                      <div className="relative aspect-square w-full bg-neutral-900 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={food.image}
@@ -943,10 +943,6 @@ export default function POSView({
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        {/* Initial Letter Badge */}
-                        <div className="absolute top-1.5 left-1.5 w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-neutral-950/85 text-amber-400 text-xs sm:text-sm font-black flex items-center justify-center border border-neutral-700 shadow">
-                          {food.initialLetter || food.name.charAt(0)}
-                        </div>
 
                         {/* In-Bill count badge */}
                         {inBill && (
@@ -956,9 +952,9 @@ export default function POSView({
                         )}
                       </div>
 
-                      {/* Content */}
-                      <div className="p-2 sm:p-2.5 space-y-1">
-                        <h4 className="text-xs sm:text-sm md:text-base font-bold text-neutral-100 line-clamp-2 group-hover:text-amber-400 transition-colors leading-snug">
+                      {/* Content - Compact height, single prominent dish title */}
+                      <div className="p-2 sm:p-2.5 space-y-0.5">
+                        <h4 className="text-xs sm:text-sm md:text-base font-bold text-neutral-100 line-clamp-1 group-hover:text-amber-400 transition-colors leading-snug">
                           {food.name}
                         </h4>
                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pt-0.5">

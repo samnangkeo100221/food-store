@@ -61,23 +61,21 @@ export function createFoodPlaceholderSvg(name: string, category: string, color: 
       ? '🍧'
       : '🍽️';
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
     <defs>
       <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${color}" stop-opacity="0.9" />
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.95" />
         <stop offset="100%" stop-color="#18181b" stop-opacity="1" />
       </linearGradient>
-      <radialGradient id="glow" cx="50%" cy="40%" r="50%">
-        <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.3" />
+      <radialGradient id="glow" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35" />
         <stop offset="100%" stop-color="#fbbf24" stop-opacity="0" />
       </radialGradient>
     </defs>
     <rect width="100%" height="100%" fill="url(#bg)"/>
-    <circle cx="200" cy="130" r="100" fill="url(#glow)"/>
-    <circle cx="200" cy="130" r="65" fill="#27272a" stroke="#fbbf24" stroke-width="2" stroke-opacity="0.4"/>
-    <text x="200" y="145" font-size="52" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
-    <rect x="30" y="225" width="340" height="48" rx="10" fill="#09090b" fill-opacity="0.75" stroke="#3f3f46" stroke-width="1"/>
-    <text x="200" y="255" font-family="sans-serif" font-size="16" font-weight="600" fill="#f4f4f5" text-anchor="middle">${name}</text>
+    <circle cx="200" cy="200" r="110" fill="url(#glow)"/>
+    <circle cx="200" cy="200" r="75" fill="#27272a" stroke="#fbbf24" stroke-width="2.5" stroke-opacity="0.45"/>
+    <text x="200" y="214" font-size="68" text-anchor="middle" dominant-baseline="middle">${emoji}</text>
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;

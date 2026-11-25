@@ -2,7 +2,7 @@
 
 import React, { useState, useSyncExternalStore, useMemo } from 'react';
 import { FoodItem, OrderItem, SaleReceipt, ViewMode } from '@/lib/types';
-import { INITIAL_FOOD_ITEMS, INITIAL_SALES_RECEIPTS } from '@/lib/data';
+import { INITIAL_FOOD_ITEMS, INITIAL_SALES_RECEIPTS, createFoodPlaceholderSvg } from '@/lib/data';
 import Navbar from '@/components/Navbar';
 import BottomNav from '@/components/BottomNav';
 import POSView from '@/components/POSView';
@@ -10,7 +10,7 @@ import FoodManagementView from '@/components/FoodManagementView';
 import ReportsView from '@/components/ReportsView';
 import ReceiptModal from '@/components/ReceiptModal';
 
-const FOOD_STORAGE_KEY = 'chak_mey_pos_foods_v2';
+const FOOD_STORAGE_KEY = 'chak_mey_pos_foods_v3';
 const RECEIPT_STORAGE_KEY = 'chak_mey_pos_receipts_v2';
 const TABLE_ORDERS_STORAGE_KEY = 'chak_mey_pos_table_orders_v2';
 
@@ -75,8 +75,26 @@ export default function HomePage() {
   const [foodItems, setFoodItems] = useState<FoodItem[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem(FOOD_STORAGE_KEY);
-        if (stored) return JSON.parse(stored);
+        const stored = localStorage.getItem(FOOD_STORAGE_KEY) || localStorage.getItem('chak_mey_pos_foods_v2');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Clean any legacy SVGs that had the duplicate name bar inside
+            return parsed.map((item: FoodItem) => {
+              if (
+                item.image &&
+                typeof item.image === 'string' &&
+                (item.image.includes('y%3D%22255%22') || item.image.includes('240%22%20viewBox'))
+              ) {
+                return {
+                  ...item,
+                  image: createFoodPlaceholderSvg(item.name, item.category, '#b45309'),
+                };
+              }
+              return item;
+            });
+          }
+        }
       } catch (e) {
         console.warn('Failed to load foods:', e);
       }

@@ -3,6 +3,7 @@
 import React from 'react';
 import { ViewMode } from '@/lib/types';
 import { Utensils, PlusCircle, Store } from 'lucide-react';
+import PWAInstallButton from './PWAInstallButton';
 
 interface NavbarProps {
   currentView: ViewMode;
@@ -49,8 +50,10 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Zone 3: 1 Primary action or Rate */}
+        {/* Zone 3: Actions, PWA Install & Rate */}
         <div className="flex items-center gap-2 shrink-0">
+          <PWAInstallButton />
+
           {currentView === 'food' && onOpenNewFoodModal ? (
             <button
               onClick={onOpenNewFoodModal}
