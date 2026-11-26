@@ -37,7 +37,7 @@ export interface SaleReceipt {
   notes?: string;
 }
 
-export type ViewMode = 'pos' | 'food' | 'reports';
+export type ViewMode = 'pos' | 'food' | 'reports' | 'calculator';
 
 export type CatalogLayout = 'grid' | 'list';
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { FoodItem, OrderItem, SaleReceipt } from '@/lib/types';
-import { formatKHR, formatUSD, DEFAULT_TABLES } from '@/lib/data';
+import { formatKHR, DEFAULT_TABLES } from '@/lib/data';
 import {
   ChevronDown,
   ChevronUp,
@@ -10,6 +10,7 @@ import {
   Minus,
   Trash2,
   Edit2,
+  Edit3,
   Check,
   ChevronRight,
   TrendingUp,
@@ -17,7 +18,7 @@ import {
   RotateCcw,
   Coins,
   QrCode,
-  DollarSign,
+  Banknote,
   PlusCircle,
   X,
   CreditCard,
@@ -27,7 +28,42 @@ import {
   CheckCircle2,
   Sparkles,
   Printer,
+  StickyNote,
+  MessageSquarePlus,
 } from 'lucide-react';
+
+// Common Cambodian / restaurant quick notes for orders
+const COMMON_ORDER_NOTES = [
+  'មិនហិរ',        // No spicy
+  'ថែមបាយ',        // Extra rice
+  'ផ្អែមតិច',       // Less sweet
+  'ទឹកកកតិច',      // Less ice
+  'ថែមពង',        // Add egg
+  'ខ្ចប់',         // Takeaway / To go
+  'មិនដាក់ខ្ទឹម',    // No garlic
+  'មិនដាក់ប៊ីចេង',  // No MSG
+  'ហិរតិចៗ',       // Mild spicy
+  'ហិរខ្លាំង',       // Extra spicy
+  'ស៊ុបក្ដៅ',       // Hot soup
+  'ទឹកកកច្រើន',     // Extra ice
+];
+
+// Helper to toggle a note chip in a comma-separated note string
+function toggleNoteChip(currentNote: string, chip: string): string {
+  const parts = currentNote
+    .split(/[,，\n]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const existingIdx = parts.findIndex((p) => p.toLowerCase() === chip.toLowerCase());
+  if (existingIdx >= 0) {
+    parts.splice(existingIdx, 1);
+    return parts.join(', ');
+  } else {
+    parts.push(chip);
+    return parts.join(', ');
+  }
+}
 
 interface POSViewProps {
   foodItems: FoodItem[];
@@ -98,6 +134,10 @@ export default function POSView({
   const [activeQuantity, setActiveQuantity] = useState<number>(1);
   const [activeNote, setActiveNote] = useState<string>('');
   const [isNewQuantityInput, setIsNewQuantityInput] = useState<boolean>(true);
+
+  // Quick note modal state for direct note editing on bill items
+  const [noteModalItem, setNoteModalItem] = useState<{ item: OrderItem; index: number } | null>(null);
+  const [noteModalText, setNoteModalText] = useState<string>('');
 
   // Checkout modal
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
@@ -342,6 +382,51 @@ export default function POSView({
 
     // Make sure sales card is in view
     salesCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  // Open note modal for a specific line item in the table's bill
+  const handleOpenItemNoteModal = (item: OrderItem, index: number) => {
+    setNoteModalItem({ item, index });
+    setNoteModalText(item.note || '');
+  };
+
+  // Save updated note for the specific line item in the bill
+  const handleSaveItemNoteModal = () => {
+    if (!noteModalItem) return;
+    const { index } = noteModalItem;
+    const trimmed = noteModalText.trim();
+    const updated = [...currentTableOrders];
+    if (updated[index]) {
+      updated[index] = {
+        ...updated[index],
+        note: trimmed || undefined,
+      };
+      onUpdateTableOrder(currentTable, updated);
+      if (activeFood?.id === updated[index].itemId) {
+        setActiveNote(trimmed);
+      }
+    }
+    setNoteModalItem(null);
+    setNoteModalText('');
+  };
+
+  // Clear note for the specific line item in the bill
+  const handleClearItemNoteModal = () => {
+    if (!noteModalItem) return;
+    const { index } = noteModalItem;
+    const updated = [...currentTableOrders];
+    if (updated[index]) {
+      updated[index] = {
+        ...updated[index],
+        note: undefined,
+      };
+      onUpdateTableOrder(currentTable, updated);
+      if (activeFood?.id === updated[index].itemId) {
+        setActiveNote('');
+      }
+    }
+    setNoteModalItem(null);
+    setNoteModalText('');
   };
 
   // Clear entire bill for the active table
@@ -957,12 +1042,9 @@ export default function POSView({
                         <h4 className="text-xs sm:text-sm md:text-base font-bold text-neutral-100 line-clamp-1 group-hover:text-amber-400 transition-colors leading-snug">
                           {food.name}
                         </h4>
-                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between pt-0.5">
+                        <div className="pt-0.5">
                           <span className="text-sm sm:text-base md:text-lg font-black text-amber-400 tabular-nums">
                             {formatKHR(food.sellingPrice)}
-                          </span>
-                          <span className="text-xs text-neutral-400 tabular-nums hidden sm:inline">
-                            {formatUSD(food.sellingPrice)}
                           </span>
                         </div>
                       </div>
@@ -1123,14 +1205,76 @@ export default function POSView({
                   </div>
                 </div>
 
-                {/* Optional Note input */}
-                <input
-                  type="text"
-                  value={activeNote}
-                  onChange={(e) => setActiveNote(e.target.value)}
-                  placeholder="ចំណាំបន្ថែម (ឧ. មិនដាក់ម្ទេស, ផ្អែមតិច...)"
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-amber-500"
-                />
+                {/* Custom Order Item Note */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between text-xs text-neutral-300 font-semibold">
+                    <span className="flex items-center gap-1.5 text-amber-400">
+                      <StickyNote className="w-4 h-4" />
+                      <span>ចំណាំមុខម្ហូប (Custom Note):</span>
+                    </span>
+                    {activeNote && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveNote('')}
+                        className="text-neutral-400 hover:text-red-400 text-[11px] flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded hover:bg-neutral-800"
+                        title="លុបចំណាំទាំងអស់"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>សម្អាតចំណាំ</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={activeNote}
+                      onChange={(e) => setActiveNote(e.target.value)}
+                      placeholder="ចំណាំបន្ថែម (ឧ. មិនហិរ, ថែមបាយ, ផ្អែមតិច...)"
+                      className="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-3.5 pr-8 py-2.5 text-xs sm:text-sm text-neutral-200 placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    {activeNote && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveNote('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 p-1"
+                        title="សម្អាត"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Preset quick-select chips (e.g., 'no spicy', 'extra rice') */}
+                  <div className="space-y-1">
+                    <div className="text-[11px] text-neutral-400">
+                      ជម្រើសពេញនិយម (ចុចដើម្បីដាក់/ដក):
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {COMMON_ORDER_NOTES.map((chip) => {
+                        const isSelected = activeNote
+                          .split(/[,，\n]+/)
+                          .map((s) => s.trim().toLowerCase())
+                          .includes(chip.toLowerCase());
+                        return (
+                          <button
+                            key={chip}
+                            type="button"
+                            onClick={() => setActiveNote((prev) => toggleNoteChip(prev, chip))}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 border ${
+                              isSelected
+                                ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-sm'
+                                : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-700/80 hover:border-neutral-600'
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3 h-3 text-neutral-950" />}
+                            <span>{chip}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
 
                 {/* Subtotal & Profit strip */}
                 <div className="flex items-center justify-between p-3 bg-neutral-900 rounded-xl border border-neutral-800 text-xs sm:text-sm">
@@ -1250,7 +1394,7 @@ export default function POSView({
                   <tbody className="divide-y divide-neutral-800/80">
                     {currentTableOrders.map((item, idx) => (
                       <tr
-                        key={item.itemId}
+                        key={`${item.itemId}-${idx}`}
                         className={`hover:bg-neutral-800/40 transition-colors ${
                           activeFood?.id === item.itemId ? 'bg-amber-500/10' : ''
                         }`}
@@ -1260,8 +1404,27 @@ export default function POSView({
                         </td>
                         <td className="py-2.5 px-2.5">
                           <div className="font-bold text-neutral-100">{item.name}</div>
-                          {item.note && (
-                            <div className="text-xs text-amber-400/90">*{item.note}</div>
+                          {item.note ? (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenItemNoteModal(item, idx)}
+                              className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 text-xs font-semibold transition-colors group text-left max-w-full"
+                              title="ចុចដើម្បីកែប្រែចំណាំ"
+                            >
+                              <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />
+                              <span className="truncate">*{item.note}</span>
+                              <Edit3 className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 shrink-0 ml-0.5" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenItemNoteModal(item, idx)}
+                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md border border-dashed border-neutral-700 hover:border-amber-500/60 text-neutral-400 hover:text-amber-300 hover:bg-neutral-800/60 text-[11px] transition-colors"
+                              title="បន្ថែមចំណាំលើម្ហូបនេះ (ឧ. មិនហិរ, ថែមបាយ)"
+                            >
+                              <MessageSquarePlus className="w-3 h-3 text-neutral-500" />
+                              <span>+ ចំណាំ</span>
+                            </button>
                           )}
                         </td>
                         <td className="py-2.5 px-2.5 text-center font-black tabular-nums text-sm sm:text-base text-neutral-100">
@@ -1276,13 +1439,27 @@ export default function POSView({
                         <td className="py-2.5 px-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
                             <button
+                              type="button"
+                              onClick={() => handleOpenItemNoteModal(item, idx)}
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                item.note
+                                  ? 'text-amber-400 hover:bg-amber-500/15'
+                                  : 'text-neutral-400 hover:text-amber-400 hover:bg-neutral-800'
+                              }`}
+                              title={item.note ? 'កែប្រែចំណាំ (Note)' : 'បន្ថែមចំណាំ (Note)'}
+                            >
+                              <StickyNote className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handleEditBillItem(item)}
                               className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 transition-colors"
-                              title="កែប្រែ"
+                              title="កែប្រែមុខម្ហូប"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDeleteBillItem(item.itemId)}
                               className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-neutral-800 transition-colors"
                               title="លុប"
@@ -1315,9 +1492,6 @@ export default function POSView({
                   <div className="flex items-baseline justify-between border-t border-neutral-800 pt-2 text-neutral-100">
                     <div>
                       <span className="text-base sm:text-lg font-bold">សរុបបុង {currentTable}:</span>
-                      <span className="text-xs sm:text-sm text-neutral-400 ml-2">
-                        ({formatUSD(totalAmount)})
-                      </span>
                     </div>
                     <span className="text-xl sm:text-2xl font-black text-amber-400 tabular-nums">
                       {formatKHR(totalAmount)}
@@ -1384,7 +1558,6 @@ export default function POSView({
               <div className="text-2xl sm:text-3xl font-black text-amber-400 tabular-nums">
                 {formatKHR(totalAmount)}
               </div>
-              <div className="text-xs sm:text-sm text-neutral-400 tabular-nums">{formatUSD(totalAmount)}</div>
             </div>
 
             {/* Payment Method Selector - ENLARGED BUTTONS */}
@@ -1400,7 +1573,7 @@ export default function POSView({
                       : 'bg-neutral-850 text-neutral-300 border-neutral-800 hover:bg-neutral-800'
                   }`}
                 >
-                  <DollarSign className="w-5 h-5 mb-1" />
+                  <Banknote className="w-5 h-5 mb-1" />
                   <span>សាច់ប្រាក់សុទ្ធ</span>
                 </button>
                 <button
@@ -1522,6 +1695,135 @@ export default function POSView({
               >
                 <Printer className="w-5 h-5" />
                 <span>គិតលុយ & បោះពុម្ព</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Item Note Modal */}
+      {noteModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-5 overflow-y-auto">
+          <div className="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <StickyNote className="w-5 h-5 text-amber-500 shrink-0" />
+                <div>
+                  <h3 className="text-base font-bold text-neutral-100">
+                    កំណត់ចំណាំមុខម្ហូប
+                  </h3>
+                  <p className="text-xs text-amber-400 font-medium">
+                    {noteModalItem.item.name} ({currentTable})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setNoteModalItem(null)}
+                className="text-neutral-400 hover:text-neutral-200 p-1.5 rounded-xl hover:bg-neutral-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Note Input */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-neutral-300 block">
+                សរសេរចំណាំ ឬជ្រើសរើសពីជម្រើសរហ័ស:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  autoFocus
+                  value={noteModalText}
+                  onChange={(e) => setNoteModalText(e.target.value)}
+                  placeholder="ឧ. មិនហិរ, ថែមបាយ, ផ្អែមតិច, ខ្ចប់..."
+                  className="w-full bg-neutral-850 border border-neutral-700 rounded-xl pl-3.5 pr-8 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 font-medium transition-colors"
+                />
+                {noteModalText && (
+                  <button
+                    type="button"
+                    onClick={() => setNoteModalText('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-200 p-1"
+                    title="សម្អាត"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div className="space-y-2">
+              <div className="text-xs text-neutral-400 font-medium">
+                ជម្រើសពេញនិយម (ចុចដើម្បីដាក់/ដក):
+              </div>
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                {COMMON_ORDER_NOTES.map((chip) => {
+                  const isSelected = noteModalText
+                    .split(/[,，\n]+/)
+                    .map((s) => s.trim().toLowerCase())
+                    .includes(chip.toLowerCase());
+                  return (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setNoteModalText((prev) => toggleNoteChip(prev, chip))}
+                      className={`py-2 px-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1 border text-center ${
+                        isSelected
+                          ? 'bg-amber-500 text-neutral-950 border-amber-500 shadow-sm'
+                          : 'bg-neutral-800/80 hover:bg-neutral-800 text-neutral-200 border-neutral-700/80 hover:border-neutral-600'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                      <span className="truncate">{chip}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Preview Box */}
+            <div className="p-3 bg-neutral-950/70 rounded-xl border border-neutral-800 text-xs space-y-1">
+              <span className="text-neutral-500 block">បង្ហាញលើវិក្កយបត្រ (Preview):</span>
+              <div className="text-neutral-200 font-medium flex items-center gap-1.5 flex-wrap">
+                <span>{noteModalItem.item.name}</span>
+                {noteModalText.trim() ? (
+                  <span className="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md">
+                    *{noteModalText.trim()}
+                  </span>
+                ) : (
+                  <span className="text-neutral-500 italic font-normal">(គ្មានចំណាំ)</span>
+                )}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 pt-2">
+              {noteModalItem.item.note && (
+                <button
+                  type="button"
+                  onClick={handleClearItemNoteModal}
+                  className="px-3 py-2.5 rounded-xl border border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs font-bold transition-colors min-h-[44px]"
+                >
+                  លុបចំណាំ
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setNoteModalItem(null)}
+                className="flex-1 py-2.5 px-3 rounded-xl border border-neutral-700 text-neutral-300 hover:bg-neutral-800 text-xs sm:text-sm font-bold transition-colors min-h-[44px]"
+              >
+                បោះបង់
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveItemNoteModal}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-neutral-950 text-xs sm:text-sm font-extrabold transition-colors shadow-md shadow-amber-500/20 min-h-[44px] flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-4 h-4" />
+                <span>រក្សាទុក</span>
               </button>
             </div>
           </div>

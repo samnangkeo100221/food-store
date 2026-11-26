@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { FoodItem } from '@/lib/types';
-import { formatKHR, formatUSD, extractInitialLetter, createFoodPlaceholderSvg } from '@/lib/data';
+import { formatKHR, extractInitialLetter, createFoodPlaceholderSvg } from '@/lib/data';
 import CameraModal from './CameraModal';
 import {
   Plus,
@@ -524,7 +524,6 @@ export default function FoodManagementView({
                     onChange={(e) => setCostPrice(parseFloat(e.target.value) || 0)}
                     className="w-full bg-neutral-850 border border-neutral-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-neutral-100 tabular-nums focus:outline-none focus:border-amber-500"
                   />
-                  <span className="text-[10px] text-neutral-500">{formatUSD(costPrice)}</span>
                 </div>
 
                 <div className="space-y-1">
@@ -540,7 +539,6 @@ export default function FoodManagementView({
                     onChange={(e) => setSellingPrice(parseFloat(e.target.value) || 0)}
                     className="w-full bg-neutral-850 border border-neutral-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-amber-400 font-bold tabular-nums focus:outline-none focus:border-amber-500"
                   />
-                  <span className="text-[10px] text-neutral-500">{formatUSD(sellingPrice)}</span>
                 </div>
               </div>
 

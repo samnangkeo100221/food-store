@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SaleReceipt } from '@/lib/types';
-import { formatKHR, formatUSD } from '@/lib/data';
+import { formatKHR } from '@/lib/data';
 import { Printer, X, CheckCircle2, QrCode, UserPlus } from 'lucide-react';
 
 interface ReceiptModalProps {
@@ -128,12 +128,8 @@ export default function ReceiptModal({ receipt, isOpen, onClose }: ReceiptModalP
             </div>
 
             <div className="flex justify-between text-sm font-bold border-t border-neutral-300 pt-1.5 text-neutral-950">
-              <span>សរុបបុង (KHR):</span>
+              <span>សរុបបុង:</span>
               <span className="tabular-nums text-base">{formatKHR(receipt.totalAmount)}</span>
-            </div>
-            <div className="flex justify-between text-xs text-neutral-700 font-semibold">
-              <span>សរុបជាដុល្លារ (USD):</span>
-              <span className="tabular-nums">{formatUSD(receipt.totalAmount)}</span>
             </div>
 
             <div className="flex justify-between text-neutral-600 pt-1 border-t border-neutral-200">

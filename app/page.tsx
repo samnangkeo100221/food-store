@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import POSView from '@/components/POSView';
 import FoodManagementView from '@/components/FoodManagementView';
 import ReportsView from '@/components/ReportsView';
+import CalculatorView from '@/components/CalculatorView';
 import ReceiptModal from '@/components/ReceiptModal';
 
 const FOOD_STORAGE_KEY = 'chak_mey_pos_foods_v3';
@@ -247,6 +248,7 @@ export default function HomePage() {
         )}
 
         {currentView === 'reports' && <ReportsView salesReceipts={salesReceipts} />}
+        {currentView === 'calculator' && <CalculatorView />}
       </main>
 
       {/* របាទំព័រទាំងបី ដាក់មកខាងក្រោម (Bottom Navigation Bar) */}

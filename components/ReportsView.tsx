@@ -2,12 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import { SaleReceipt } from '@/lib/types';
-import { formatKHR, formatUSD } from '@/lib/data';
+import { formatKHR } from '@/lib/data';
 import ReceiptModal from './ReceiptModal';
+import PDFReportModal from './PDFReportModal';
 import {
   TrendingUp,
   Receipt,
-  DollarSign,
+  Coins,
   Calendar,
   Eye,
   ShoppingBag,
@@ -16,6 +17,7 @@ import {
   PieChart as PieIcon,
   BarChart3,
   Percent,
+  FileText,
 } from 'lucide-react';
 
 interface ReportsViewProps {
@@ -28,6 +30,7 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
   const [selectedRange, setSelectedRange] = useState<DateRange>('all');
   const [activeReceipt, setActiveReceipt] = useState<SaleReceipt | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [isPDFReportModalOpen, setIsPDFReportModalOpen] = useState(false);
 
   // Filter receipts by date range
   const filteredReceipts = useMemo(() => {
@@ -176,27 +179,40 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
           </p>
         </div>
 
-        {/* Date Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-neutral-900 border border-neutral-700 rounded-xl sm:rounded-2xl overflow-x-auto scrollbar-thin">
-          {[
-            { id: 'today', label: 'ថ្ងៃនេះ' },
-            { id: 'yesterday', label: 'ម្សិលមិញ' },
-            { id: 'week', label: '៧ថ្ងៃចុងក្រោយ' },
-            { id: 'month', label: 'ខែនេះ' },
-            { id: 'all', label: 'ទាំងអស់' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setSelectedRange(tab.id as DateRange)}
-              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors min-h-[38px] sm:min-h-[42px] flex items-center justify-center ${
-                selectedRange === tab.id
-                  ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Date Filter Tabs */}
+          <div className="flex items-center gap-1.5 p-1.5 bg-neutral-900 border border-neutral-700 rounded-xl sm:rounded-2xl overflow-x-auto scrollbar-thin">
+            {[
+              { id: 'today', label: 'ថ្ងៃនេះ' },
+              { id: 'yesterday', label: 'ម្សិលមិញ' },
+              { id: 'week', label: '៧ថ្ងៃចុងក្រោយ' },
+              { id: 'month', label: 'ខែនេះ' },
+              { id: 'all', label: 'ទាំងអស់' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedRange(tab.id as DateRange)}
+                className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-colors min-h-[38px] sm:min-h-[42px] flex items-center justify-center ${
+                  selectedRange === tab.id
+                    ? 'bg-amber-500 text-neutral-950 font-bold shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Export PDF Button */}
+          <button
+            type="button"
+            onClick={() => setIsPDFReportModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-600 text-neutral-950 font-extrabold text-xs sm:text-sm transition-all shadow-md shadow-amber-500/20 whitespace-nowrap min-h-[42px]"
+            title="ទាញយក ឬបោះពុម្ពរបាយការណ៍ PDF សម្រាប់រក្សាទុក"
+          >
+            <FileText className="w-4 h-4" />
+            <span>ទាញយករបាយការណ៍ PDF</span>
+          </button>
         </div>
       </div>
 
@@ -206,14 +222,11 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
         <div className="bg-neutral-850 border border-neutral-800 rounded-2xl p-4 space-y-2">
           <div className="flex items-center justify-between text-neutral-400 text-xs">
             <span>ចំណូលសរុប (Revenue)</span>
-            <DollarSign className="w-4 h-4 text-amber-400" />
+            <Coins className="w-4 h-4 text-amber-400" />
           </div>
           <div>
             <div className="text-lg sm:text-xl font-bold text-neutral-100 tabular-nums">
               {formatKHR(stats.totalRevenue)}
-            </div>
-            <div className="text-xs text-neutral-400 tabular-nums">
-              {formatUSD(stats.totalRevenue)}
             </div>
           </div>
         </div>
@@ -227,9 +240,6 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
           <div>
             <div className="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums">
               +{formatKHR(stats.totalProfit)}
-            </div>
-            <div className="text-xs text-neutral-400 tabular-nums">
-              {formatUSD(stats.totalProfit)}
             </div>
           </div>
         </div>
@@ -531,6 +541,28 @@ export default function ReportsView({ salesReceipts }: ReportsViewProps) {
         receipt={activeReceipt}
         isOpen={isReceiptModalOpen}
         onClose={() => setIsReceiptModalOpen(false)}
+      />
+
+      {/* PDF Daily & Periodic Report Modal */}
+      <PDFReportModal
+        isOpen={isPDFReportModalOpen}
+        onClose={() => setIsPDFReportModalOpen(false)}
+        selectedRange={selectedRange}
+        dateLabel={
+          selectedRange === 'today'
+            ? 'ថ្ងៃនេះ'
+            : selectedRange === 'yesterday'
+            ? 'ម្សិលមិញ'
+            : selectedRange === 'week'
+            ? '៧ ថ្ងៃចុងក្រោយ'
+            : selectedRange === 'month'
+            ? 'ខែនេះ'
+            : 'ទិន្នន័យទាំងអស់'
+        }
+        stats={stats}
+        categoryStats={categoryStats}
+        topDishes={topDishes}
+        filteredReceipts={filteredReceipts}
       />
     </div>
   );

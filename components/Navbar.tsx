@@ -43,6 +43,10 @@ export default function Navbar({
                 {activeTable || 'តុ ១'}
               </span>
             </div>
+          ) : currentView === 'calculator' ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-850 border border-neutral-700/80 text-xs text-neutral-300">
+              <span className="font-bold text-amber-400">ម៉ាស៊ីនគិតលេខ (Calculator)</span>
+            </div>
           ) : (
             <div className="text-xs text-neutral-400 font-medium">
               ប្រព័ន្ធលក់ និងគ្រប់គ្រងអាហារដ្ឋាន
@@ -63,9 +67,8 @@ export default function Navbar({
               <span>បញ្ចូលមុខម្ហូប</span>
             </button>
           ) : (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-neutral-400 bg-neutral-800/80 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border border-neutral-700/60 font-mono">
-              <span className="text-neutral-500 hidden sm:inline">អត្រា:</span>
-              <span className="text-neutral-200 font-semibold">1$ = 4,100៛</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-neutral-300 bg-neutral-800/80 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border border-neutral-700/60 font-medium">
+              <span className="text-amber-400 font-bold">គិតជាលុយរៀល (៛)</span>
             </div>
           )}
         </div>

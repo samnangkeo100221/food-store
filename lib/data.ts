@@ -34,16 +34,8 @@ export function extractInitialLetter(text: string): string {
   return trimmed.charAt(0);
 }
 
-// Exchange rate default: 4,100 KHR = 1 USD
-export const KHR_PER_USD = 4100;
-
 export function formatKHR(amount: number): string {
   return Math.round(amount).toLocaleString('en-US') + ' ៛';
-}
-
-export function formatUSD(amount: number): string {
-  const usd = amount / KHR_PER_USD;
-  return '$' + usd.toFixed(2);
 }
 
 // Generate inline SVG food illustrations for reliable, offline-ready high-fidelity visuals
